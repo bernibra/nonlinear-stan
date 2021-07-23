@@ -1,205 +1,73 @@
-library("sp")
-library("raster")
-library("maptools")
-library("dismo")
-library("rJava")
-library(SDMTools)
-source("../prepare-data/useful-tools.R")
 library(MASS)
-library(gridExtra)
-library(grid)
+library(ggplot2)
 
-# Define projection as global variable
-projection <- "+proj=somerc +init=world:CH1903"
+# Simulate data for the baseline model
+simulated.baseline <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
+                               beta_s = 0.3, beta_mu = 0, gamma_s=0.1, gamma_mu=0,
+                               beta_nu = 3, beta_rho=4, gamma_nu=1, gamma_rho=10,
+                               alpha_mu = -0.5, alpha_s=1
+                               ){
 
-prepare.data <- function(variables = c("bio5_", "bio6_","bio12_"), min.occurrence=0, elevation=F){
+        # Environmental predictor
+        X <- rnorm(sites)
         
-        # Determine geographic extent of our data
-        places <- read.csv(file = "../../data/properties/codes/places_codes.csv", header = T)
-        # places$elevation <- as.vector(scale(places$elevation))
-        max.lat <- max(places$northing)
-        min.lat <- min(places$northing)
-        max.lon <- max(places$easting)
-        min.lon <- min(places$easting)
-        geographic.extent <- extent(x = c(min.lon, max.lon, min.lat, max.lat))
-        
-        # Load data for all species
-        files <- as.numeric(gsub(".csv", "", list.files("../../data/processed/sdm/")))
-        sp_codes <- read.table("../../data/properties/codes/sp_codes.csv", sep=",", header = T)
-        dictionary <- read.table("../../data/properties/codes/dictionary.csv", sep=",", header = T)
-        correlation_matrix_ids <- read.table("../../data/properties/codes/correlation_matrix_ids.csv", sep="\t", header = F)
-        denvironment <- as.matrix(read.table("../../data/properties/distance-matrices/environment.csv", sep=","))
-        dvariation <- as.matrix(read.table("../../data/properties/distance-matrices/variation.csv", sep=","))
-        dtraits <- as.matrix(read.table("../../data/properties/distance-matrices/trait.csv", sep=","))
-        
-        indicator <- read.table("../../data/properties/codes/temperature_indicator.csv", sep=",")
-        neophytes <- read.table("../../data/properties/codes/neophytes-list.csv", sep=",")
-        tendency <- read.table("../../data/properties/codes/change-tendency.csv", sep=",")
-        competitive <- read.table("../../data/properties/codes/competitive_indicator.csv", sep=",")
-        detailed <- read.table("../../data/properties/codes/neophytes-detailed.csv", sep=",")
-        
-        # Check that there aren't unnexpected files
-        if(!all(sort(files)==1:length(files))){
-            stop("Odd files in the folder")    
+        # Generate basic distance matrix D1
+        if(is.null(Dbeta)){
+            Dbeta <- (as.matrix(dist(1:sp))/sp)
+        }
+        # Generate basic distance matrix D2
+        if(is.null(Dgamma)){
+            Dgamma <- (as.matrix(dist(1:sp))/sp)
         }
         
-        # Prepare main file
-        obs.data <- data.frame()
-        name.idx <- c()
-        kdx <- 1
-        Tind <- c()
-        NEO <- c()
-        Tend <- c()
-        compet <- c()
-        deta <- c()
+        # Generate variance-covariance structures
+        Sigma_beta <- beta_nu*exp(-beta_rho*(Dbeta**2)) + diag(sp)*beta_s
+        Sigma_gamma <- gamma_nu*exp(-gamma_rho*(Dgamma**2)) + diag(sp)*gamma_s
         
-        # Read observations
-        for(idx in 1:length(files)){
-             if(sp_codes$range[sp_codes$id==idx]<min.occurrence){
-                     next
-             }
-             obs.data_ <- read.csv(file = paste("../../data/processed/sdm/", as.character(idx), ".csv", sep = ""), header = T)
-             ### Ok so I think the order for the correlation matrix is the same, but I do need to double-check
-             ### This is a very dumb way of doing just that. I didn't want to think.
-             new.name <- as.character(dictionary$new.names[as.character(dictionary$old.names)==as.character(sp_codes$sp[idx])])
-             Tind <- rbind(Tind, c(kdx, new.name, as.character(indicator$nflor.T[new.name==indicator$nflor.spnames])))
-             NEO <- rbind(NEO, c(kdx, new.name, neophytes$neo[new.name==neophytes$names]))
-             Tend <- rbind(Tend, c(kdx, new.name, tendency$decrease[new.name==tendency$names], tendency$decrease.low[new.name==tendency$names], tendency$increase[new.name==tendency$names], tendency$other[new.name==tendency$names]))
-             compet <- rbind(compet, c(kdx, new.name, as.character(competitive$nflor.KS[new.name==competitive$nflor.spnames])))
-             deta <- rbind(deta, c(kdx, new.name, detailed$i[new.name==detailed$names],
-                                   detailed$n[new.name==detailed$names],
-                                   detailed$nw[new.name==detailed$names],
-                                   detailed$a[new.name==detailed$names],
-                                   detailed$ja[new.name==detailed$names], 
-                                   detailed$jn[new.name==detailed$names],
-                                   detailed$isn[new.name==detailed$names],
-                                   detailed$isa[new.name==detailed$names],
-                                   detailed$isj[new.name==detailed$names],
-                                   detailed$isasn[new.name==detailed$names],
-                                   detailed$asn[new.name==detailed$names]))
-             
-             name.idx <- c(name.idx,correlation_matrix_ids$V1[as.character(correlation_matrix_ids$V2)==new.name])
-             ###
-             obs.data_$id <- kdx
-             obs.data_$real.id <- idx
-             obs.data_$mmsbm.id <- correlation_matrix_ids$V1[as.character(correlation_matrix_ids$V2)==new.name]
-             if(elevation){
-                     obs.data_$elevation <- places$elevation
-             }
-             obs.data <- rbind(obs.data, obs.data_)
-             kdx <- kdx+1
-        }
-        
-        newdeta <- as.data.frame(deta)
-        colnames(newdeta) <- c("id", colnames(detailed))
-        # class(deta) <- "numeric"
-        # newdeta <- newdeta[,c(T, T, colSums(deta[,3:ncol(deta)])>0)]
+        # Sample beta and gamma
+        beta <- mvrnorm(mu = rep(beta_mu, times = sp), Sigma = Sigma_beta)
+        gamma <- exp(mvrnorm(mu = rep(gamma_mu, times = sp), Sigma = Sigma_gamma))
 
-        
-        if(min.occurrence==10){
-                write.table(Tind, "../../data/properties/codes/temperature_indicator_reindexed.csv", sep=",")
-                write.table(NEO, "../../data/properties/codes/neophytes-list_reindexed.csv", sep=",")
-                write.table(Tend, "../../data/properties/codes/change-tendency_reindexed.csv", sep=",")
-                write.table(compet, "../../data/properties/codes/competitive_reindexed.csv", sep=",")
-                write.table(newdeta, "../../data/properties/codes/neophytes-detailed_reindexed.csv", sep=",")
-                
-        }else{
-                write.table(Tind, paste("../../data/properties/codes/temperature_indicator_reindexed-",as.character(min.occurrence),".csv", sep=""))
-                write.table(NEO, paste("../../data/properties/codes/neophytes-list_reindexed-",as.character(min.occurrence),".csv", sep=""))
-                write.table(Tend, paste("../../data/properties/codes/change-tendency_reindexed-",as.character(min.occurrence),".csv", sep=""))
-                write.table(compet, paste("../../data/properties/codes/competitive_reindexed-",as.character(min.occurrence),".csv", sep=""))
-                write.table(newdeta, paste("../../data/properties/codes/neophytes-detailed_reindexed-",as.character(min.occurrence),".csv", sep=""))
-                
-        }
-        
-        # reshape correlation matrices
-        denvironment <- denvironment[,name.idx]
-        denvironment <- denvironment[name.idx,]
-        dvariation <- dvariation[,name.idx]
-        dvariation <- dvariation[name.idx,]
-        dtraits <- dtraits[,name.idx]
-        dtraits <- dtraits[name.idx,]
-        
-        # rename cols and rows
-        colnames(denvironment) <- 1:ncol(denvironment)
-        rownames(denvironment) <- 1:nrow(denvironment)
-        colnames(dvariation) <- 1:ncol(dvariation)
-        rownames(dvariation) <- 1:nrow(dvariation)
-        colnames(dtraits) <- 1:ncol(dtraits)
-        rownames(dtraits) <- 1:nrow(dtraits)
-        
-        obs.data$obs <- 1*(obs.data$abundance>0)
-        obs.data$abundance <- factor(obs.data$abundance,
-                               levels = sort(unique(obs.data$abundance)),
-                               labels = 1:length(unique(obs.data$abundance)))
+        # Sample alphas
+        alpha <- exp(rnorm(sp, alpha_mu,alpha_s))
 
-        # Load environmental data
-        files <- list.files(path="../../data/raw/climatic-data/", pattern = "bil$", full.names = TRUE)
-        files <- files[grepl(paste(variables,collapse="|"), files)]
-        bioclim.data <- stack(files)
-        crs(bioclim.data)<-projection
+        # Generate dataset object
+        dataset <- expand.grid(site=1:sites, id=1:sp)
         
-        return(list(obs.data = obs.data, bioclim.data = bioclim.data, xlim = c(min.lon, max.lon), ylim = c(min.lat, max.lat), 
-                    denv = denvironment, dvar = dvariation, dtrait=dtraits))
-}
-
-# Generate fake data to test the extent to which the model works
-simulated.data <- function(simulated.type="linear.corr"){
-        
-        set.seed(3)
-        
-        # Define system dimensions
-        N <- 25
-        sites <- 300
-        
-        # Environmental predictors for each site
-        e1 <- rnorm(sites)
-        e2 <- rnorm(sites)
-        
-        # uncorrelated coefficients for each species and parameters
-        sigma1 <- 0.3 # sd beta1
-        mean1 <- -1 # mean beta1
-        sigma2 <- 0.4 # sd beta2
-        mean2 <- 1.5 # mean beta2
-        rho <- 0.4 # correlation between betas
-        
-        # Coefficients for generating the variance-covariance matrix
-        nu <- 3
-        s <- 0.5
-        Dis <- (as.matrix(dist(1:N))/N)
-        
-        # coefficients for each species
-        Sigma <- nu*exp(-1/(s*s)*(Dis^2)) + diag(N)*sigma1
-        z1 <- mvrnorm(mu = rep(0, times = N), Sigma = Sigma)
-
-        # Generate correlations
-        beta1 <- z1
-
-        # vec <- c(1:round(N*0.5), 1:round(N*0.5))
-        # Dis_sigma <- as.matrix(dist(vec))+1-diag(N)
-        # Dis_sigma <- (Dis_sigma/max(Dis_sigma))
-        Dis_sigma <- (as.matrix(dist(1:N))/N)
-        
-        Sigma <- 1*exp(-1/(0.3*0.3)*(Dis_sigma^2)) + diag(N)*0.1
-        sigma_beta1 <- exp(mvrnorm(mu = rep(0, times = N), Sigma = Sigma))
-        # Sigma <- 1*exp(-1/(0.2*0.2)*(Dis^2)) + diag(N)*0.1
-        # alpha <- exp(mvrnorm(mu = rep(0, times = N), Sigma = Sigma))
-        alpha <- exp(rnorm(N, -0.5,1))
-
-        # Simulate data
-        dataset <- expand.grid(site=1:sites, id=1:N)
-        dataset$S1 <- e1[dataset$site]
-        dataset$S2 <- e2[dataset$site]
-        dataset$beta1 <- beta1[dataset$id] 
+        # Populate the object
+        dataset$S1 <- X[dataset$site]
+        dataset$beta <- beta[dataset$id] 
         dataset$alpha <- alpha[dataset$id]
-        dataset$sigma_beta1 <- sigma_beta1[dataset$id]
+        dataset$gamma <- gamma[dataset$id]
         
-        dataset$p <- exp(-alpha[dataset$id] - sigma_beta1[dataset$id]*(beta1[dataset$id] - dataset$S1)**2)
+        # Calculate probability
+        dataset$p <- exp(-dataset$alpha - dataset$gamma*(dataset$beta - dataset$S1)**2)
         
+        # Sample occurrences
         dataset$obs <- rbinom(n = length(dataset$S1), size = 1, prob = dataset$p)
-        dataset <- data.frame(id=dataset$id, obs=dataset$obs, alpha=dataset$alpha, beta1=dataset$beta1, sigma_beta1=dataset$sigma_beta1, S1=dataset$S1, S2=dataset$S2)                
-        return(list(dataset=dataset, corr=Dis, corr2=Dis_sigma, corr3=Dis))
+        
+        # check if all species have at least a couple of occurrences (in the article we set this minimum number to be 20)
+        test <- colSums(matrix(dataset$obs, sites, sp))
+        if(any(test<2)){
+                warning('There is at least one species that have less than two occurrences. You might want to rerun (try different parameter values)')
+        }
+        
+        # Return object with all the data, parameter values and distance matrices
+        return(list(dataset=dataset, Dbeta=Dbeta, Dgamma=Dgamma))
 }
+
+# Visualize simulated data
+plot.distributions <- function(dataset){
+        ggplot(data=dataset, aes(x=S1, y=p, colour=as.factor(id)))+
+                geom_line()+
+                scale_x_continuous(expand = expansion(add = c(0, 0)))+
+                theme_bw()+
+                theme(legend.position = "none",
+                      panel.grid.major = element_blank(),
+                      panel.grid.minor = element_blank())
+}
+
+
 
 # Generate fake data to test the extent to which the model works
 simulated.generr.data <- function(){
@@ -403,7 +271,13 @@ simulated.data.categorical <- function(){
         }
         
         dataset$obs <- obs
-        dataset <- data.frame(id=dataset$id, obs=dataset$obs, alpha=dataset$alpha, alpha1=dataset$alpha1, alpha2=dataset$alpha2, alpha3=dataset$alpha3, alpha4=dataset$alpha4,  beta1=dataset$beta1, sigma_beta1=dataset$sigma_beta1, S1=dataset$S1, S2=dataset$S2) 
+        dataset <- data.frame(id=dataset$id, obs=dataset$obs, alpha=dataset$alpha, alpha1=dataset$alpha1, alpha2=dataset$alpha2, alpha3=dataset$alpha3, alpha4=dataset$alpha4,  beta1=dataset$beta1, sigma_beta1=dataset$sigma_beta1, S1=dataset$S1, S2=dataset$S2)
+        
+        # check if all species have at least a couple of occurrences
+        test <- colSums(matrix(dataset$obs, sites, sp))
+        if(any(test<2)){
+                warning('There is at least one species that have less than two occurrences. You might want to rerun (try different parameter values)')
+        }
         
         return(list(dataset=dataset, corr=Dis, corr2=Dis_sigma, corr3=Dis))
 }
