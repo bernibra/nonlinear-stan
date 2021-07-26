@@ -27,8 +27,10 @@ my_data <- simulated.generror(sp=L, sites=N)
 Before sampling the posterior distributions, we need to prepare the data and define the initial values for the sampling. 
 
 ```r
+# Load the cmdstanr library
 library(cmdstanr)
 
+# Reformat the data
 obs <- t(matrix(my_data$dataset$obs, N, L))
 X <- matrix(my_data$dataset$S1, N, L)[,1]
 indices <- 1:L
@@ -78,9 +80,14 @@ for ( i in 1:n_chains_1.0 ) init_1.0[[i]] <- start_1.0
 To sample the posterior distributions we used the R package _cmdstanr_. 
 
 ```r
+# Load the stan code
 source('./code/stan-code/models-binomial.R')
 model_code = binomial.fat.tailed.skewed
+
+# Prepare the model
 model <- cmdstan_model(write_stan_file(model_code), cpp_options = list(stan_threads = TRUE))
+
+# Sample the posterior distributions
 mfit_1.0 <- model$sample(data = dat_1.0,
                               init = init_1.0,
                               chains = 3,
