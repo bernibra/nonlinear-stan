@@ -50,7 +50,7 @@ simulated.baseline <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
         # check if all species have at least a couple of occurrences (in the article we set this minimum number to be 20)
         test <- colSums(matrix(dataset$obs, sites, sp))
         if(any(test<2)){
-                warning('There is at least one species that have less than two occurrences. You might want to rerun (try different parameter values)')
+                warning('There is at least one species that have less than two occurrences. You might want to drop those sp or rerun (try different parameter values)')
         }
         
         # Return object with all the data, parameter values and distance matrices
@@ -131,7 +131,7 @@ simulated.generror <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
         # check if all species have at least a couple of occurrences (in the article we set this minimum number to be 20)
         test <- colSums(matrix(dataset$obs, sites, sp))
         if(any(test<2)){
-                warning('There is at least one species that have less than two occurrences. You might want to rerun (try different parameter values)')
+                warning('There is at least one species that have less than two occurrences. You might want to drop those sp or rerun (try different parameter values)')
         }
         
         # Return object with all the data, parameter values and distance matrices
