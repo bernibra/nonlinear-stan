@@ -24,7 +24,7 @@ my_data <- simulated.generror(sp=L, sites=N)
 
 ## Prepare the data
 
-Before sampling the posterior distributions, we need to prepare the data and define the initial values for the sampling. 
+Before sampling the posterior distributions, we need to prepare the data and define the initial values. Notice that we generate two objects, one with the input data and another with the initial values for each chain (here we use 3 chains).
 
 ```r
 # Load the cmdstanr library
@@ -77,7 +77,7 @@ for ( i in 1:n_chains_1.0 ) init_1.0[[i]] <- start_1.0
 
 ## Sample the posterior distributions
 
-To sample the posterior distributions we used the R package _cmdstanr_. 
+To sample the posterior distributions, we used the R package _cmdstanr_. 
 
 ```r
 # Load the stan code
@@ -101,4 +101,11 @@ mfit_1.0 <- model$sample(data = dat_1.0,
 # Save the object as an rds file
 mfit_1.0$save_object(file = "model-cdmstan.rds", sep="")
 ```
-
+Running a model like this in the ETH computer cluster, we had the following resource summary:
+- CPU time :                                   263403.94 sec.
+- Max Memory :                                 11969 MB
+- Average Memory :                             1251.61 MB
+- Max Processes :                              6
+- Max Threads :                                49
+- Run time :                                   8207 sec.
+- Turnaround time :                            166988 sec.
