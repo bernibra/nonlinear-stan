@@ -77,7 +77,7 @@ for ( i in 1:n_chains_1.0 ) init_1.0[[i]] <- start_1.0
 
 ## Sample the posterior distributions
 
-To sample the posterior distributions, we used the R package _cmdstanr_. 
+The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_. This is because the models use the `reduce_sum` functionality, a way to parallelize the execution of a single Stan chain across multiple cores.
 
 ```r
 # Load the stan code
