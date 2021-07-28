@@ -4,7 +4,7 @@ Bayesian hierarchical non-linear models to study the shape of plant distribution
 
 ## Considerations
 
-I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster at ETHZ (Euler). An estimate of the hardware requirements is provided below.
+I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster at ETHZ (Euler). An estimate of the hardware requirements for the example below is provided at the end of the page.
 
 ## Download the code
 
