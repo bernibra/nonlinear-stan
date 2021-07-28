@@ -4,7 +4,7 @@ Bayesian hierarchical non-linear models to study the shape of plant distribution
 
 ## Considerations
 
-I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster from ETHZ (Euler). An estimate of the hardware requirements is provided below.
+I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster at ETHZ (Euler). An estimate of the hardware requirements is provided below.
 
 ## Download the code
 
@@ -77,7 +77,7 @@ for ( i in 1:n_chains_1.0 ) init_1.0[[i]] <- start_1.0
 
 ## Sample the posterior distributions
 
-The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_. This is because the models use the `reduce_sum` functionality, a way to parallelize the execution of a single Stan chain across multiple cores (follow [this](https://mc-stan.org/users/documentation/case-studies/reduce_sum_tutorial.html) link for further details).
+The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_. This is because the models use the [`reduce_sum`](https://mc-stan.org/users/documentation/case-studies/reduce_sum_tutorial.html) functionality, a way to parallelize the execution of a single Stan chain across multiple cores.
 
 ```r
 # Load the stan code
