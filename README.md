@@ -1,10 +1,19 @@
 # nonlinear-stan
 
-Bayesian hierarchical non-linear models to study the shape of plant distributions
+Bayesian hierarchical non-linear models to study the shape of plant distributions. If you want to run the models with the data used in the manuscript, this is publicly available [here](https://doi.org/10.1111/j.1472-4642.2011.00792.x).
 
 ## Considerations
 
-I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster at ETHZ (Euler). An estimate of the hardware requirements for the example below is provided at the end of the page.
+I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster at ETHZ (Euler). This is an estimate of the hardware requirements to run the example below:
+
+Resource summary:
+- CPU time :                                   263403.94 sec.
+- Max Memory :                                 11969 MB
+- Average Memory :                             1251.61 MB
+- Max Processes :                              6
+- Max Threads :                                49
+- Run time :                                   8207 sec.
+- Turnaround time :                            166988 sec.
 
 ## Download the code
 
@@ -101,11 +110,17 @@ mfit_1.0 <- model$sample(data = dat_1.0,
 # Save the object as an rds file
 mfit_1.0$save_object(file = "model-cdmstan.rds", sep="")
 ```
-Resource summary:
-- CPU time :                                   263403.94 sec.
-- Max Memory :                                 11969 MB
-- Average Memory :                             1251.61 MB
-- Max Processes :                              6
-- Max Threads :                                49
-- Run time :                                   8207 sec.
-- Turnaround time :                            166988 sec.
+
+## Visualize the results
+
+### Run extract samples
+
+### Fig 1
+
+### Fig 2
+
+### Fig 3
+
+### Fig 4
+
+### Fig 5
