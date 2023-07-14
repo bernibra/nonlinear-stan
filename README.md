@@ -2,6 +2,10 @@
 
 Bayesian hierarchical non-linear models to study the shape of plant distributions. If you want to run the models with the data used in the manuscript, this is publicly available [here](https://doi.org/10.1111/j.1472-4642.2011.00792.x).
 
+## How to cite?
+
+_Add reference once published_
+
 ## Considerations
 
 I would not recommend running these models unless you have access to a HPC cluster, as these can be computationally very expensive. All model runs were done using the computer cluster at ETHZ (Euler). This is an estimate of the hardware requirements to run the example below:
@@ -124,7 +128,7 @@ Now, the results of the sampling process are stored in the object `mfit_1.0`, al
 
 ### Run extract samples
 
-To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `dplyr`, `scales`, `rethinking` and `posterior`:
+To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `tidyverse`, `scales`, `rethinking`, `hexbin` and `posterior`:
 
 ```r
 library(dplyr)
@@ -208,5 +212,48 @@ grid.arrange(p1, p2, ncol=2)
 ```
 
 ### Fig 4
+The fourth figure studies the correlation across pairs of parameters. To do so, we just need to calculate the mean of the posterior distribution for two given parameters across species, and display them against each other.
+
+```r
+mu_beta <- apply(beta,2,mean)
+
+dat <- data.frame(mean=mu_beta, variance=mu_variance)
+ggplot(dat, aes(y=mean, x=variance)) + 
+  geom_point(color="#1b9e77")+
+  coord_trans(x="log", clip = "off") +
+  scale_x_continuous(expand = expansion(add = c(0, 0))) +
+  scale_y_continuous(expand = expansion(add = c(0, 0))) +
+  theme_bw()
+```
+
+Notice that for the upper panels and side margin panels comparing groups of species (only one in this case), one can obtain the distribution of means across groups by simply applying:
+
+```r
+average_beta <- apply(beta,1,mean)
+average_variance <- apply(variance,1,mean)
+```
 
 ### Fig 5
+
+The final figure studies the log-likelihood and how the errors are distributed across distributions. To reproduce this figure we need to extract the log-likelihood values for every sample and calculate the normalized probability for the distribution of every species. We can do this with the function `log.vs.probability` from `utility.R`:
+
+```r
+data <- log.vs.probability(X, mfit_1.0, samples = 2000)
+
+ggplot(finaldata, aes(x=x, y=y, fill=count)) + 
+    geom_hex(stat="identity",size=0.2, alpha=1) +
+    xlab("normalized probability") +
+    ylab("log-likelihood") +
+    annotate("text", x = c(0.025, 0.985), y = c(-0.17, -0.17), label = c("tails", "peak"), colour = "#525252", size=3) +
+    coord_cartesian(clip = 'off') +
+    scale_x_continuous(expand = c(0.02, 0.02)) +
+    scale_y_continuous(expand = c(0.02, 0.02), limits = c(min(finaldata$y)-0.2, 0)) +
+    scale_fill_distiller(limits= c(-0.002,max(finaldata$count)), palette = "PuRd", direction=1, na.value = "white", labels = as.vector(sapply(c(1, 1+1:5*2), function(ll) paste(ll, "%", sep=""))) , breaks = c(1, 1+1:5*2)*0.01) +
+    theme_bw() +
+    guides(color = FALSE, size = FALSE) +
+    theme(text = element_text(size=11),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.background = element_blank(),
+          legend.title = element_blank())
+```

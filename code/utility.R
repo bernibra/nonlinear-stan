@@ -65,3 +65,51 @@ plot.ranking.x <- function(mu, ci, color="#d95f02"){
   return(p)
 }
 
+log.vs.probability <- function(X, mfit, samples = 2000){
+  loglik <- mfit$draws(c("log_lik"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+  gammav <- mfit$draws(c("gammav"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+  betam <- mfit$draws(c("betam"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+  lambda <- mfit$draws(c("lambda"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+  nu <- mfit$draws(c("nu"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+  
+  maxlog <- max(loglik)
+  minlog <- min(loglik)
+  
+  dat <- expand.grid(seq(from=0, to=1, length.out = 100),
+                     seq(from=minlog, to=maxlog, length.out = 100))
+  
+  z.hex <- hexbin(dat$Var1, dat$Var2, xbnds = c(0, 1), ybnds = c(minlog, maxlog), xbins = 25, IDs = T)
+  data <- rep(0,max(as.numeric(names(table(z.hex@cID)))))
+  finaldata <- data.frame(hexbin::hcell2xy(z.hex),
+                          cell = z.hex@cell,
+                          count = z.hex@count)
+  normalization <- finaldata
+  
+  for(i in 1:samples){
+    loglik_ <- loglik[i,]
+    betam_ <- outer(X, as.matrix(betam[i,]), "-")
+    gammav_ <- outer(rep(1, length(X)),as.matrix(gammav[i,]), "*")
+    lambda_ <- outer(rep(1, length(X)),as.matrix(lambda[i,]), "*")
+    nu_ <- outer(rep(1, length(X)),as.matrix(nu[i,]), "*")
+    
+    p <- as.vector(exp(-(gammav_ * abs(betam_)/(1+lambda_*sign(betam_)))**(nu_)))
+    
+    z.hex_ <- hexbin(p, loglik_, xbnds = c(0, 1), ybnds = c(minlog, maxlog), xbins = 25, IDs = T)
+    z.hex_ <- table(z.hex_@cID)
+    z.hex_id <- as.numeric(names(z.hex_))
+    
+    for(k in 1:length(z.hex_)){
+      data[z.hex_id[k]] <- data[z.hex_id[k]] + z.hex_[k]
+    }
+    
+  }
+  
+  finaldata$count <- data
+  finaldata <- finaldata[finaldata$count!=0,]
+  finaldata <- finaldata[finaldata$y<=log(0.50),]
+  
+  finaldata$count <- finaldata$count/sum(  finaldata$count )
+  
+  return(finaldata)
+}
+
