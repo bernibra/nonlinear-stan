@@ -124,25 +124,62 @@ Now, the results of the sampling process are stored in the object `mfit_1.0`, al
 
 ### Run extract samples
 
-To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R package `dplyr` and `posterior`:
+To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `dplyr`, `scales`, `rethinking` and `posterior`:
 
 ```r
 library(dplyr)
 library(posterior)
+library(scales)
+library(rethinking)
 
 beta <- mfit_1.0$draws(c("beta"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
 gamma <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
-alpha <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
-nu <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
-lambda <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+alpha <- mfit_1.0$draws(c("alpha"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+nu <- mfit_1.0$draws(c("nu"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+lambda <- mfit_1.0$draws(c("lambda"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
 ```
 
 ### Fig 1
-Figure one of the manuscript was generated without data, and it can be reproduced using the function ``
+The first figure of the manuscript was generated without data, and it can be reproduced using the function `plot.one.distribution` in `utility.R`
+
+```r
+library(ggplot2)
+source('./code/utility.R')
+
+plot.one.distribution(alpha = 0.5, beta = 1, gamma = 2, nu = 2.2, lambda = -0.5)
+```
 
 ### Fig 2
+The second figure of the manuscript displays the center and confidence interval of the mean and variance of distributions for each species. We can reproduce this plot for the mean and variance using `plot.ranking.x` in `utility.R`. For example, for the variance:
+
+```r
+variance <- 1/gamma
+
+mu_variance <- apply(variance,2,mean)
+ci_variance <- apply(variance,2,PI)
+
+g <- plot.ranking.x(mu_variance, ci_variance) +
+    coord_trans(y="log", clip = "off")
+```
+
+if you are using the simulated data and want to visualize the true values, you can:
+
+```r
+mu_order <- sort(mu_variance,index.return=T)$ix
+
+true_variance <- my_data$dataset %>%
+                 select(gamma, id) %>%
+                 distinct() %>%
+                 mutate(variance = 1.0/gamma) %>%
+                 pull(variance)
+
+dat <- data.frame(x = 1:length(true_variance), y = true_variance[mu_order])
+
+g + geom_point(data = dat, aes(x=x, y=y), color = "black", shape = 1)
+```
 
 ### Fig 3
+The third figure of the manuscript displays the posterior distribution of the average kurtosis and average skewness across species. One can calculate those using `kurtosis.skew.generror` and `skewness.skew.generror` from `utility.R`:
 
 ### Fig 4
 
