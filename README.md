@@ -34,19 +34,17 @@ N <- 900
 
 my_data <- simulated.generror(sp=L, sites=N)
 ```
-Notice that this will simulate data according to the parameter default values. You can change any of those following the parameter naming:
-$$
-mathtt{beta_s}\\
-mathtt{beta_mu}\\
-mathtt{gamma_s}\\
-mathtt{gamma_mu}\\
-mathtt{beta_nu}\\
-mathtt{beta_rho}\\
-mathtt{gamma_nu}\\
-mathtt{gamma_rho}\\
-mathtt{alpha_mu}\\
-mathtt{alpha_s}
-$$
+Notice that this will simulate data according to the parameter default values. You can change any of those following the parameter naming (see the manuscript methods section):
+  - `beta_s`: $\sigma_{\beta}$
+  - `beta_mu`: $\hat{\beta}$
+  - `gamma_s`: $\sigma_{\gamma}$
+  - `gamma_mu`: $\hat{\gamma}$
+  - `beta_nu`: $\nu_{\beta}$
+  - `beta_rho`: $\rho_{\beta}$
+  - `gamma_nu`: $\nu_{\gamma}$
+  - `gamma_rho`: $\rho_{\gamma}$
+  - `alpha_mu`: $\hat{\alpha}$
+  - `alpha_s`: $\sigma_{\alpha}$
 
 You can have a quick look at what the theoretical distributions looks like using:
 ```r
