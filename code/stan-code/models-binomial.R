@@ -21,7 +21,7 @@ functions{
         real lp = 0.0;
         for( i in start:end){
             for( j in 1:N ){
-                lp += binomial_lpmf( Y[i, j] | 1 , exp(-alpha[i] - gamma[i] * columns_dot_self(X1 - beta[i])) + minp);
+                lp += binomial_lpmf( Y[i, j] | 1 , exp(-alpha[i] - 0.5 * gamma[i] * columns_dot_self(X1 - beta[i])) + minp);
             }
         }
         return lp;
@@ -90,18 +90,18 @@ model{
                      N, alpha, beta, gamma, Y, X1, minp);
 
 }
-//generated quantities{
-//    vector[L*N] log_lik;
-//    int k;
-//
-//    k = 1;
-//    for ( i in 1:L ){
-//        for (j in 1:N){
-//           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - gamma[i] * pow(X1[j] - beta[i],2)) + minp);
-//          k = k + 1;
-//        }
-//    }
-//}
+generated quantities{
+    vector[L*N] log_lik;
+    int k;
+
+    k = 1;
+    for ( i in 1:L ){
+        for (j in 1:N){
+           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - 0.5 * gamma[i] * pow(X1[j] - beta[i],2)) + minp);
+          k = k + 1;
+        }
+    }
+}
 "
 
 # Fat tailed response
@@ -126,8 +126,9 @@ functions{
                    int N, vector alpha, vector beta, vector gamma, vector nu, int[ , ] Y, row_vector X1, real minp ) {
         real lp = 0.0;
         for( i in start:end){
+            v = sqrt( (gamma[i] * tgamma(3/nu[i])) / tgamma(1/nu[i]));
             for( j in 1:N ){
-                lp += binomial_lpmf( Y[i, j] | 1 , exp(-alpha[i] - pow(gamma[i] * fabs(X1[j] - beta[i]), nu[i])) + minp);
+                lp += binomial_lpmf( Y[i, j] | 1 , exp(-alpha[i] - pow(v * fabs(X1[j] - beta[i]), nu[i])) + minp);
             }
         }
         return lp;
@@ -178,10 +179,6 @@ transformed parameters{
     L_SIGMA_g = cholesky_decompose(cov_GPL2(Dmat_g, etasq_g, rhosq_g, sigma_g));
     gamma = L_SIGMA_g * zgamma + gamma_bar;
     gamma = exp(gamma);
-    
-    for (i in 1:L){
-       gamma[i] = sqrt( (gamma[i] * tgamma(3/nu[i])) / tgamma(1/nu[i]));
-    }
 }
 model{
     sigma_a ~ exponential( 1 );
@@ -208,18 +205,23 @@ model{
                      N, alpha, beta, gamma, nu, Y, X1, minp);
 
 }
-//generated quantities{
-//    vector[L*N] log_lik;
-//    int k;
-//
-//    k = 1;
-//    for ( i in 1:L ){
-//        for (j in 1:N){
-//           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - pow(gamma[i] * fabs(X1[j] - beta[i]), nu[i])) + minp);
-//           k = k + 1;
-//        }
-//    }
-//}
+generated quantities{
+    vector[L*N] log_lik;
+    vector[L] gammav;
+    int k;
+
+    for (i in 1:L){
+        gammav[i] = sqrt( (gamma[i] * tgamma(3/nu[i])) / tgamma(1/nu[i]));
+    }
+
+    k = 1;
+    for ( i in 1:L ){
+        for (j in 1:N){
+           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - beta[i]), nu[i])) + minp);
+           k = k + 1;
+        }
+    }
+}
 "
 
 # Skewed response
@@ -249,7 +251,7 @@ functions{
         real m;
         real v;
         for( i in start:end){
-            v = gamma[i] * sqrt((pi()*(1+3*pow(lambda[i],2))-8.0*pow(lambda[i],2))/(2.0*pi()));
+            v = sqrt(gamma[i] * ((pi()*(1+3*pow(lambda[i],2))-8.0*pow(lambda[i],2))/(2.0*pi())));
             m = beta[i] - 2.0*lambda[i]/(sqrt(pi())*v);
             for( j in 1:N ){
                 lp += binomial_lpmf( Y[i, j] | 1 , exp(-alpha[i] - pow(v * fabs(X1[j] - m)/(1+lambda[i]*sgn(X1[j] - m)), 2.0)) + minp);
@@ -329,25 +331,25 @@ model{
                      grainsize,
                      N, lambda, alpha, beta, gamma, Y, X1, minp);
 }
-//generated quantities{
-//    vector[L*N] log_lik;
-//    vector[L] betam;
-//    vector[L] gammav;
-//    int k;
-//
-//    for (i in 1:L){
-//        gammav[i] = gamma[i] * sqrt((pi()*(1+3*pow(lambda[i],2))-8.0*pow(lambda[i],2))/(2.0*pi()));
-//        betam[i] = beta[i] - 2.0*lambda[i]/(sqrt(pi())*gammav[i]);
-//    }
-//
-//    k = 1;
-//    for ( i in 1:L ){
-//        for (j in 1:N){
-//           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - betam[i])/(1+lambda[i]*sgn(X1[j] - betam[i])), 2.0)) + minp);
-//           k = k + 1;
-//        }
-//    }
-//}
+generated quantities{
+    vector[L*N] log_lik;
+    vector[L] betam;
+    vector[L] gammav;
+    int k;
+
+    for (i in 1:L){
+        gammav[i] = sqrt(gamma[i] * ((pi()*(1+3*pow(lambda[i],2))-8.0*pow(lambda[i],2))/(2.0*pi())));
+        betam[i] = beta[i] - 2.0*lambda[i]/(sqrt(pi())*gammav[i]);
+    }
+
+    k = 1;
+    for ( i in 1:L ){
+        for (j in 1:N){
+           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - betam[i])/(1+lambda[i]*sgn(X1[j] - betam[i])), 2.0)) + minp);
+           k = k + 1;
+        }
+    }
+}
 "
 
 # Fat-tailed and skewed response
@@ -377,7 +379,7 @@ functions{
         real m;
         real v;
         for( i in start:end){
-            v = gamma[i] * sqrt((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i])));
+            v = sqrt(gamma[i] *((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i]))));
             m = beta[i] - pow(2, 2.0/nu[i])*lambda[i]*tgamma(0.5+1.0/nu[i])/(sqrt(pi())*v);
             for( j in 1:N ){
                 lp += binomial_lpmf( Y[i, j] | 1 , exp(-alpha[i] - pow(v * fabs(X1[j] - m)/(1+lambda[i]*sgn(X1[j] - m)), nu[i])) + minp);
@@ -465,23 +467,23 @@ model{
                      grainsize,
                      N, lambda, alpha, beta, gamma, nu, Y, X1, minp);
 }
-//generated quantities{
-//    vector[L*N] log_lik;
-//    vector[L] betam;
-//    vector[L] gammav;
-//    int k;
-//
-//    for (i in 1:L){
-//        gammav[i] = gamma[i] * sqrt((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i])));
-//        betam[i] = beta[i] - pow(2, 2.0/nu[i])*lambda[i]*tgamma(0.5+1.0/nu[i])/(sqrt(pi())*gammav[i]);
-//    }
-//
-//    k = 1;
-//    for ( i in 1:L ){
-//        for (j in 1:N){
-//           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - betam[i])/(1+lambda[i]*sgn(X1[j] - betam[i])), nu[i])) + minp);
-//           k = k + 1;
-//        }
-//    }
-//}
+generated quantities{
+    vector[L*N] log_lik;
+    vector[L] betam;
+    vector[L] gammav;
+    int k;
+
+    for (i in 1:L){
+        gammav[i] = sqrt(gamma[i] * ((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i]))));
+        betam[i] = beta[i] - pow(2, 2.0/nu[i])*lambda[i]*tgamma(0.5+1.0/nu[i])/(sqrt(pi())*gammav[i]);
+    }
+
+    k = 1;
+    for ( i in 1:L ){
+        for (j in 1:N){
+           log_lik[k] = binomial_lpmf(Y[i, j] | 1, exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - betam[i])/(1+lambda[i]*sgn(X1[j] - betam[i])), nu[i])) + minp);
+           k = k + 1;
+        }
+    }
+}
 "

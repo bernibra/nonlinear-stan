@@ -42,7 +42,7 @@ simulated.baseline <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
         dataset$gamma <- gamma[dataset$id]
         
         # Calculate probability
-        dataset$p <- exp(-dataset$alpha - dataset$gamma*(dataset$beta - dataset$S1)**2)
+        dataset$p <- exp(-dataset$alpha - 0.5*dataset$gamma*(dataset$beta - dataset$S1)**2)
         
         # Sample occurrences
         dataset$obs <- rbinom(n = length(dataset$S1), size = 1, prob = dataset$p)
@@ -106,7 +106,7 @@ simulated.generror <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
         }
         
         # Transform gamma and beta
-        gamma_v <- gamma * sqrt((pi*(1+3*lambda*lambda)*base::gamma(3/nu)-(16**(1/nu))*lambda*lambda*base::gamma(0.5+1/nu)*base::gamma(0.5+1/nu)*base::gamma(1/nu))/(pi*base::gamma(1/nu)))
+        gamma_v <- sqrt(gamma * ((pi*(1+3*lambda*lambda)*base::gamma(3/nu)-(16**(1/nu))*lambda*lambda*base::gamma(0.5+1/nu)*base::gamma(0.5+1/nu)*base::gamma(1/nu))/(pi*base::gamma(1/nu))))
         beta_m <- beta - 2**(2.0/nu)*lambda*base::gamma(0.5+1.0/nu)/(sqrt(pi)*gamma_v)
 
         # Generate dataset object

@@ -23,12 +23,17 @@ Download or clone this repository in your computer using `git clone https://gith
 
 To simulate data, one can use the functions provided in `./code/simulated-data/simulate-data.R`. For example, to generate presence/absence data for 50 species accross 900 sites presenting fat-tailed and skewed distributions, you can run the following:
 ```r
-source("./code/simulated-data/simulate-data.R")
+source("./code/simulate-data.R")
 
 L <- 50
 N <- 900
 
 my_data <- simulated.generror(sp=L, sites=N)
+```
+
+You can have a quick look at what the theoretical distributions looks like using:
+```r
+plot.distributions(my_data$dataset)
 ```
 
 ## Prepare the data
@@ -51,8 +56,8 @@ dat_1.0 <- list(N=N,
                 Y=obs,
                 indices=indices,
                 X1=X,
-                Dmat_b=d$Dbeta,
-                Dmat_g=d$Dgamma
+                Dmat_b=my_data$Dbeta,
+                Dmat_g=my_data$Dgamma
 )
 
 # Set starting values for the parameters
@@ -86,7 +91,7 @@ for ( i in 1:n_chains_1.0 ) init_1.0[[i]] <- start_1.0
 
 ## Sample the posterior distributions
 
-The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_. This is because the models use the [`reduce_sum`](https://mc-stan.org/users/documentation/case-studies/reduce_sum_tutorial.html) functionality, a way to parallelize the execution of a single Stan chain across multiple cores.
+The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_. This is because the models use the [`reduce_sum`](https://mc-stan.org/users/documentation/case-studies/reduce_sum_tutorial.html) functionality, a way to parallelise the execution of a single Stan chain across multiple cores. Let's try to do so with the fat-tailed and skewed model.
 
 ```r
 # Load the stan code
@@ -108,14 +113,32 @@ mfit_1.0 <- model$sample(data = dat_1.0,
                               refresh = 500)
 
 # Save the object as an rds file
-mfit_1.0$save_object(file = "model-cdmstan.rds", sep="")
+mfit_1.0$save_object(file = "model-cdmstan.rds")
 ```
+
+Notice that the computational resources requested here are not those of a regular laptop; again, this should be run in a computer cluster where one have a substantial amount of memory and cores. Run it at your own risk on your laptop, lowering the `threads_per_chain` to fit your laptop specifications (usually 1 or 2 per core). If so, it would also be a good idea to lower the number of species `L` and sites `N`.
 
 ## Visualize the results
 
+Now, the results of the sampling process are stored in the object `mfit_1.0`, also stored as an RDS object created in the main directory.
+
 ### Run extract samples
 
+To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R package `dplyr` and `posterior`:
+
+```r
+library(dplyr)
+library(posterior)
+
+beta <- mfit_1.0$draws(c("beta"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+gamma <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+alpha <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+nu <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+lambda <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
+```
+
 ### Fig 1
+Figure one of the manuscript was generated without data, and it can be reproduced using the function ``
 
 ### Fig 2
 

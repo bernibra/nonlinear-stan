@@ -24,7 +24,7 @@ functions{
         for( i in start:end){
             for( j in 1:N ){
             
-                p = exp(- alpha[i] - gamma[i] * pow(X1[j] - beta[i], 2));
+                p = exp(- alpha[i] - 0.5 * gamma[i] * pow(X1[j] - beta[i], 2));
             
                 prob[1] = 1 - phi[1]*p - minp*(M+1);
                        
@@ -111,30 +111,30 @@ model{
                      grainsize,
                      N, M, alpha, beta, gamma, phi, Y, X1, minp);
 }
-//generated quantities{
-//    vector[L*N] log_lik;
-//    int k;
-//    real p;
-//    vector[M+1] prob;
-//
-//    k = 1;
-//    for ( i in 1:L ){
-//        for (j in 1:N){
-//           p = exp(-alpha[i] - gamma[i] * pow(X1[j] - beta[i], 2));
-//
-//           prob[1] = 1 - phi[1]*p - minp*(M+1);
-//
-//           for (l in 2:M){
-//              prob[l]  =  phi[l-1]*p - phi[l]*p + minp;
-//           }
-//
-//           prob[M+1]  = phi[M]*p + minp;
-//
-//           log_lik[k] = categorical_lpmf( Y[i, j] | prob);
-//           k = k + 1;
-//        }
-//    }
-//}
+generated quantities{
+    vector[L*N] log_lik;
+    int k;
+    real p;
+    vector[M+1] prob;
+
+    k = 1;
+    for ( i in 1:L ){
+        for (j in 1:N){
+           p = exp(-alpha[i] - 0.5 * gamma[i] * pow(X1[j] - beta[i], 2));
+
+           prob[1] = 1 - phi[1]*p - minp*(M+1);
+
+           for (l in 2:M){
+              prob[l]  =  phi[l-1]*p - phi[l]*p + minp;
+           }
+
+           prob[M+1]  = phi[M]*p + minp;
+
+           log_lik[k] = categorical_lpmf( Y[i, j] | prob);
+           k = k + 1;
+        }
+    }
+}
 "
 
 categorical.fat.tailed.skewed <- "
@@ -166,7 +166,7 @@ functions{
         vector[M+1] prob;
 
         for( i in start:end){
-            v = gamma[i] * sqrt((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i])));
+            v = sqrt(gamma[i] * ((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i]))));
             m = beta[i] - pow(2, 2.0/nu[i])*lambda[i]*tgamma(0.5+1.0/nu[i])/(sqrt(pi())*v);
             for( j in 1:N ){
             
@@ -273,36 +273,36 @@ model{
                      grainsize,
                      N, M, lambda, alpha, beta, gamma, nu, phi, Y, X1, minp);
 }
-//generated quantities{
-//    vector[L*N] log_lik;
-//    vector[L] betam;
-//    vector[L] gammav;
-//    int k;
-//    real p;
-//    vector[M+1] prob;
-//
-//    for (i in 1:L){
-//        gammav[i] = gamma[i] * sqrt((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i])));
-//        betam[i] = beta[i] - pow(2, 2.0/nu[i])*lambda[i]*tgamma(0.5+1.0/nu[i])/(sqrt(pi())*gammav[i]);
-//    }
-//
-//    k = 1;
-//    for ( i in 1:L ){
-//        for (j in 1:N){
-//           p = exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - betam[i])/(1+lambda[i]*sgn(X1[j] - betam[i])), nu[i]));
-//
-//           prob[1] = 1 - phi[1]*p - minp*(M+1);
-//
-//           for (l in 2:M){
-//              prob[l]  =  phi[l-1]*p - phi[l]*p + minp;
-//           }
-//
-//           prob[M+1]  = phi[M]*p + minp;
-//
-//           log_lik[k] = categorical_lpmf( Y[i, j] | prob);
-//           k = k + 1;
-//        }
-//    }
-//}
+generated quantities{
+    vector[L*N] log_lik;
+    vector[L] betam;
+    vector[L] gammav;
+    int k;
+    real p;
+    vector[M+1] prob;
+
+    for (i in 1:L){
+        gammav[i] = sqrt(gamma[i] * ((pi()*(1+3*pow(lambda[i],2))*tgamma(3.0/nu[i])-pow(16,(1.0/nu[i]))*pow(lambda[i],2)*tgamma(0.5+1.0/nu[i])*tgamma(0.5+1.0/nu[i])*tgamma(1.0/nu[i]))/(pi()*tgamma(1.0/nu[i]))));
+        betam[i] = beta[i] - pow(2, 2.0/nu[i])*lambda[i]*tgamma(0.5+1.0/nu[i])/(sqrt(pi())*gammav[i]);
+    }
+
+    k = 1;
+    for ( i in 1:L ){
+        for (j in 1:N){
+           p = exp(-alpha[i] - pow(gammav[i] * fabs(X1[j] - betam[i])/(1+lambda[i]*sgn(X1[j] - betam[i])), nu[i]));
+
+           prob[1] = 1 - phi[1]*p - minp*(M+1);
+
+           for (l in 2:M){
+              prob[l]  =  phi[l-1]*p - phi[l]*p + minp;
+           }
+
+           prob[M+1]  = phi[M]*p + minp;
+
+           log_lik[k] = categorical_lpmf( Y[i, j] | prob);
+           k = k + 1;
+        }
+    }
+}
 "
 
