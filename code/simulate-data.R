@@ -5,7 +5,7 @@ library(rethinking)
 # Simulate data for the baseline model
 simulated.baseline <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
                                beta_s = 0.3, beta_mu = 0, gamma_s=0.1, gamma_mu=0,
-                               beta_nu = 2, beta_rho=4, gamma_nu=1, gamma_rho=10,
+                               beta_eta = 2, beta_rho=4, gamma_eta=1, gamma_rho=10,
                                alpha_mu = -0.5, alpha_s=1
                                ){
 
@@ -22,8 +22,8 @@ simulated.baseline <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
         }
         
         # Generate variance-covariance structures
-        Sigma_beta <- beta_nu*exp(-beta_rho*(Dbeta**2)) + diag(sp)*beta_s
-        Sigma_gamma <- gamma_nu*exp(-gamma_rho*(Dgamma**2)) + diag(sp)*gamma_s
+        Sigma_beta <- beta_eta*exp(-beta_rho*(Dbeta**2)) + diag(sp)*beta_s
+        Sigma_gamma <- gamma_eta*exp(-gamma_rho*(Dgamma**2)) + diag(sp)*gamma_s
         
         # Sample beta and gamma
         beta <- mvrnorm(mu = rep(beta_mu, times = sp), Sigma = Sigma_beta)
@@ -60,7 +60,7 @@ simulated.baseline <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
 # Simulate data for the baseline model
 simulated.generror <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
                                beta_s = 0.3, beta_mu = 0, gamma_s=0.1, gamma_mu=0,
-                               beta_nu = 2, beta_rho=4, gamma_nu=1, gamma_rho=10,
+                               beta_eta = 2, beta_rho=4, gamma_eta=1, gamma_rho=10,
                                alpha_mu = -0.5, alpha_s=1,
                                isnu=T, islambda=T, 
                                nu_mu=0.5, nu_s=0.1, lambda_mu=1.1, lambda_s=0.4
@@ -79,8 +79,8 @@ simulated.generror <- function(sp=25, sites=300, Dbeta=NULL, Dgamma=NULL,
         }
         
         # Generate variance-covariance structures
-        Sigma_beta <- beta_nu*exp(-beta_rho*(Dbeta**2)) + diag(sp)*beta_s
-        Sigma_gamma <- gamma_nu*exp(-gamma_rho*(Dgamma**2)) + diag(sp)*gamma_s
+        Sigma_beta <- beta_eta*exp(-beta_rho*(Dbeta**2)) + diag(sp)*beta_s
+        Sigma_gamma <- gamma_eta*exp(-gamma_rho*(Dgamma**2)) + diag(sp)*gamma_s
         
         # Sample beta and gamma
         beta <- mvrnorm(mu = rep(beta_mu, times = sp), Sigma = Sigma_beta)

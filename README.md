@@ -39,12 +39,16 @@ Notice that this will simulate data according to the parameter default values. Y
   - `beta_mu`: $\hat{\beta}$
   - `gamma_s`: $\sigma_{\gamma}$
   - `gamma_mu`: $\hat{\gamma}$
-  - `beta_nu`: $\nu_{\beta}$
+  - `beta_eta`: $\eta_{\beta}$
   - `beta_rho`: $\rho_{\beta}$
-  - `gamma_nu`: $\nu_{\gamma}$
+  - `gamma_nu`: $\eta_{\gamma}$
   - `gamma_rho`: $\rho_{\gamma}$
   - `alpha_mu`: $\hat{\alpha}$
   - `alpha_s`: $\sigma_{\alpha}$
+  - `nu_mu`: $\hat{\nu}$
+  - `nu_s`: $\sigma_{\nu}$
+  - `lambda_mu`: $\hat{\lambda}$
+  - `lambda_s`: $\sigma_{\lambda}$
 
 You can have a quick look at what the theoretical distributions looks like using:
 ```r
