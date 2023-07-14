@@ -4,7 +4,7 @@ Bayesian hierarchical non-linear models to study the shape of plant distribution
 
 ## How to cite?
 
-_Add reference once published_
+Cite the American Naturalist manuscript where the models are presented.
 
 ## Considerations
 
