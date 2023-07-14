@@ -128,13 +128,15 @@ Now, the results of the sampling process are stored in the object `mfit_1.0`, al
 
 ### Run extract samples
 
-To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `tidyverse`, `scales`, `rethinking`, `hexbin` and `posterior`:
+To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `dplyr`, `gridExtra`, `scales`, `rethinking`, `hexbin` and `posterior`:
 
 ```r
 library(dplyr)
 library(posterior)
 library(scales)
 library(rethinking)
+library(hexbin)
+library(gridExtra)
 
 beta <- mfit_1.0$draws(c("beta"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
 gamma <- mfit_1.0$draws(c("gamma"), format = "data.frame") %>% select(-c(`.draw`, `.chain`, `.iteration`))
@@ -240,15 +242,15 @@ The final figure studies the log-likelihood and how the errors are distributed a
 ```r
 data <- log.vs.probability(X, mfit_1.0, samples = 2000)
 
-ggplot(finaldata, aes(x=x, y=y, fill=count)) + 
+ggplot(data, aes(x=x, y=y, fill=count)) + 
     geom_hex(stat="identity",size=0.2, alpha=1) +
     xlab("normalized probability") +
     ylab("log-likelihood") +
     annotate("text", x = c(0.025, 0.985), y = c(-0.17, -0.17), label = c("tails", "peak"), colour = "#525252", size=3) +
     coord_cartesian(clip = 'off') +
     scale_x_continuous(expand = c(0.02, 0.02)) +
-    scale_y_continuous(expand = c(0.02, 0.02), limits = c(min(finaldata$y)-0.2, 0)) +
-    scale_fill_distiller(limits= c(-0.002,max(finaldata$count)), palette = "PuRd", direction=1, na.value = "white", labels = as.vector(sapply(c(1, 1+1:5*2), function(ll) paste(ll, "%", sep=""))) , breaks = c(1, 1+1:5*2)*0.01) +
+    scale_y_continuous(expand = c(0.02, 0.02), limits = c(min(data$y)-0.2, 0)) +
+    scale_fill_distiller(limits= c(-0.002,max(data$count)), palette = "PuRd", direction=1, na.value = "white", labels = as.vector(sapply(c(1, 1+1:5*2), function(ll) paste(ll, "%", sep=""))) , breaks = c(1, 1+1:5*2)*0.01) +
     theme_bw() +
     guides(color = FALSE, size = FALSE) +
     theme(text = element_text(size=11),
