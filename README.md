@@ -181,6 +181,32 @@ g + geom_point(data = dat, aes(x=x, y=y), color = "black", shape = 1)
 ### Fig 3
 The third figure of the manuscript displays the posterior distribution of the average kurtosis and average skewness across species. One can calculate those using `kurtosis.skew.generror` and `skewness.skew.generror` from `utility.R`:
 
+```r
+skewness <- skewness.skew.generror(nu, lambda)
+skewness_bar <- apply(skewness, 1, mean)
+
+kurtosis <- kurtosis.skew.generror(nu, lambda)
+kurtosis_bar <- apply(kurtosis, 1, mean)
+
+dat <- data.frame(y = skewness_bar, x = kurtosis_bar)
+
+p1 <- ggplot(dat, aes(x=x)) +
+    geom_vline(xintercept = 0, color = "#999999", linetype="dashed") +
+    stat_density(geom = "line", position = "identity", colour = "#E69F00") +
+    xlab("kurtosis") + 
+    ggtitle("(a)  average kurtosis of distributions") +
+    theme_bw()
+    
+p2 <- ggplot(dat, aes(x=y)) +
+    geom_vline(xintercept = 0, color = "#999999", linetype="dashed") +
+    stat_density(geom = "line", position = "identity", color = "#E69F00") +
+    xlab("skewness") + 
+    ggtitle("(b)  average skewness of distributions") +
+    theme_bw()
+    
+grid.arrange(p1, p2, ncol=2)
+```
+
 ### Fig 4
 
 ### Fig 5
