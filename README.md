@@ -23,7 +23,7 @@ Resource summary:
 
 Download or clone this repository in your computer using `git clone https://github.com/bernibra/nonlinear-stan.git`
 
-## Simulate data
+## Process data
 
 To simulate data, one can use the functions provided in `./code/simulated-data/simulate-data.R`. For example, to generate presence/absence data for 50 species accross 900 sites presenting fat-tailed and skewed distributions, you can run the following:
 ```r
@@ -34,13 +34,28 @@ N <- 900
 
 my_data <- simulated.generror(sp=L, sites=N)
 ```
+Notice that this will simulate data according to the parameter default values. You can change any of those following the parameter naming:
+$$
+mathtt{beta_s}\\
+mathtt{beta_mu}\\
+mathtt{gamma_s}\\
+mathtt{gamma_mu}\\
+mathtt{beta_nu}\\
+mathtt{beta_rho}\\
+mathtt{gamma_nu}\\
+mathtt{gamma_rho}\\
+mathtt{alpha_mu}\\
+mathtt{alpha_s}
+$$
 
 You can have a quick look at what the theoretical distributions looks like using:
 ```r
 plot.distributions(my_data$dataset)
 ```
 
-## Prepare the data
+If you are instead using the empirical data used in the manuscript, you can simply create a list with the different elements in the object `my_data`. Fundamentally, this should include a `dataset` data.frame with $sites \times species$ rows, with columns `id` (species integer ID), `obs` (presence/absence data or ordered categorical variable), `S1` (the environmental variable; scaled for optimal sampling), and `site` (site integer ID). Finally, the `my_data` list should also include two distance matrices `Dgamma` and `Dbeta` for the Gaussian process (see manuscript methods section for details).
+
+## Prepare the data for the model
 
 Before sampling the posterior distributions, we need to prepare the data and define the initial values. Notice that we generate two objects, one with the input data and another with the initial values for each chain (here we use 3 chains).
 
