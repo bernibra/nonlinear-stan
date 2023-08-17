@@ -112,7 +112,7 @@ for ( i in 1:n_chains_1.0 ) init_1.0[[i]] <- start_1.0
 
 ## Sample the posterior distributions
 
-The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_. This is because the models use the [`reduce_sum`](https://mc-stan.org/users/documentation/case-studies/reduce_sum_tutorial.html) functionality, a way to parallelise the execution of a single Stan chain across multiple cores. Let's try to do so with the fat-tailed and skewed model.
+The models used in the manuscript can be found in `./code/stan-code/models-binomial.R` and `./code/stan-code/models-categorical.R`. To sample the posterior distributions, we used the R package _cmdstanr_ (see Session Information section at the end of the page). This is because the models use the [`reduce_sum`](https://mc-stan.org/users/documentation/case-studies/reduce_sum_tutorial.html) functionality, a way to parallelise the execution of a single Stan chain across multiple cores. Let's try to do so with the fat-tailed and skewed model.
 
 ```r
 # Load the stan code
@@ -145,7 +145,7 @@ Now, the results of the sampling process are stored in the object `mfit_1.0`, al
 
 ### Run extract samples
 
-To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `dplyr`, `gridExtra`, `scales`, `rethinking`, `hexbin` and `posterior`:
+To visualize the results and produce the figures presented in the manuscript, one needs to first extract the samples. To do so, we will use functions from the R packages `dplyr`, `gridExtra`, `scales`, `rethinking`, `hexbin` and `posterior` (see Session Information section at the end of the page):
 
 ```r
 library(dplyr)
@@ -278,6 +278,7 @@ ggplot(data, aes(x=x, y=y, fill=count)) +
 ```
 
 ## Session Information
+
 ```R
 R version 4.0.4 (2021-02-15)
 Platform: x86_64-apple-darwin17.0 (64-bit)
@@ -317,4 +318,10 @@ loaded via a namespace (and not attached):
 [43] magrittr_2.0.3       tibble_3.1.6         crayon_1.5.1        
 [46] pkgconfig_2.0.3      ellipsis_0.3.2       prettyunits_1.1.1   
 [49] assertthat_0.2.1     R6_2.5.1             compiler_4.0.4 
+```
+
+The only package that is not currently on CRAN is Richard McElreath’s [`rethinking`](https://github.com/rmcelreath/rethinking) package. This can be installed with `devtools` as follows:
+
+```R
+devtools::install_github("rmcelreath/rethinking")
 ```
