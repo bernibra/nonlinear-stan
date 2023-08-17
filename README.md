@@ -276,3 +276,45 @@ ggplot(data, aes(x=x, y=y, fill=count)) +
           legend.background = element_blank(),
           legend.title = element_blank())
 ```
+
+## Session Information
+```R
+R version 4.0.4 (2021-02-15)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Big Sur 10.16
+
+Matrix products: default
+LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] parallel  stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] gridExtra_2.3        hexbin_1.28.2        scales_1.2.0        
+ [4] posterior_1.2.1      dplyr_1.0.8          cmdstanr_0.3.0.9000 
+ [7] rethinking_2.13      rstan_2.21.3         StanHeaders_2.21.0-7
+[10] ggplot2_3.3.6        MASS_7.3-56         
+
+loaded via a namespace (and not attached):
+ [1] shape_1.4.6          tidyselect_1.1.2     xfun_0.30           
+ [4] purrr_0.3.4          lattice_0.20-45      colorspace_2.0-3    
+ [7] vctrs_0.4.0          generics_0.1.2       stats4_4.0.4        
+[10] loo_2.5.1            utf8_1.2.2           rlang_1.0.2         
+[13] pkgbuild_1.3.1       pillar_1.7.0         glue_1.6.2          
+[16] withr_2.5.0          DBI_1.1.2            distributional_0.3.0
+[19] matrixStats_0.61.0   lifecycle_1.0.1      munsell_0.5.0       
+[22] gtable_0.3.0         mvtnorm_1.1-3        codetools_0.2-18    
+[25] coda_0.19-4          inline_0.3.19        knitr_1.39          
+[28] callr_3.7.0          ps_1.6.0             fansi_1.0.3         
+[31] Rcpp_1.0.8.3         backports_1.4.1      checkmate_2.0.0     
+[34] RcppParallel_5.1.5   jsonlite_1.8.0       abind_1.4-5         
+[37] farver_2.1.0         tensorA_0.36.2       processx_3.5.3      
+[40] grid_4.0.4           cli_3.2.0            tools_4.0.4         
+[43] magrittr_2.0.3       tibble_3.1.6         crayon_1.5.1        
+[46] pkgconfig_2.0.3      ellipsis_0.3.2       prettyunits_1.1.1   
+[49] assertthat_0.2.1     R6_2.5.1             compiler_4.0.4 
+```
