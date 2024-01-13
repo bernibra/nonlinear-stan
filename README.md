@@ -1,4 +1,4 @@
-# nonlinear-stan [![DOI](https://zenodo.org/badge/388764760.svg)](https://zenodo.org/badge/latestdoi/388764760)
+# nonlinear-stan [![DOI](https://zenodo.org/badge/388764760.svg)](https://zenodo.org/badge/latestdoi/388764760)[![](https://badgen.net/badge/DOI/10.1086%2F727518/green)](https://doi.org/10.1086/727518)
 
 Bayesian hierarchical non-linear models to study the shape of plant distributions. If you want to run the models with the data used in the manuscript, this is publicly available [here](https://doi.org/10.1111/j.1472-4642.2011.00792.x).
 
