@@ -4,7 +4,9 @@ Bayesian hierarchical non-linear models to study the shape of plant distribution
 
 ## How to cite?
 
-Cite the American Naturalist manuscript where the models are presented.
+Uncovering Broad Macroecological Patterns by Comparing the Shape of Species’ Distributions along Environmental Gradients
+Bernat Bramon Mora, Antoine Guisan, and Jake M. Alexander
+The American Naturalist 2024 203:1, 124-138
 
 ## Considerations
 
